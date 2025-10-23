@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://calc.kototjom.top/sitemap.xml
