@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор Согласованных Скруглений</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #5379f7; 
+            --secondary-color: #28a745; 
+            --danger-color: #ef4444; 
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff; 
+            color: #1f2937; 
+        }
+        .content-section {
+            padding: 1rem 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+    .drawing-area {
+        position: relative;
+        background-color: #f5f5f5;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        width: 100%;
+        padding-top: 100%; 
+        border: 1px solid #ccc;
+        transition: border-color 0.3s ease;
+    }
+    .drawing-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .box {
+        position: absolute;
+        box-sizing: border-box;
+        background: rgba(83, 121, 247, 0.1);
+        border: 2px solid;
+        transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .outer-box {
+        border-color: #5379f7;
+    }
+    .inner-box {
+        border-color: #28a745;
+    }
+    .circle {
+        position: absolute;
+        border: 2px dashed;
+        border-radius: 50%;
+        background: transparent;
+        z-index: 15;
+        transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .outer-circle {
+        border-color: #5379f7;
+    }
+    .inner-circle {
+        border-color: #28a745;
+    }
+    
+    .is-invalid {
+        border-color: #ef4444 !important; 
+    }
+.is-invalid-result {
+    border-color: #ef4444 !important; 
+}
+
+.validation-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ef4444; 
+    font-weight: 600;
+    font-size: 1.5rem;
+    text-align: center;
+    width: 80%; 
+}
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .content-section {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 p-4 md:p-8">
+
+    <main class="container mx-auto max-w-7xl w-full">
+        
+<div class="container mx-auto flex flex-col md:flex-row md:gap-8 max-w-7xl w-full items-stretch">
+            
+                <div class="flex flex-col gap-8 w-full md:w-1/2 bg-gray-50 rounded-2xl p-6 border border-gray-300">
+                    <h1 lang="ru" class="text-2xl font-semibold hyphens-auto">Калькулятор скруглений</h1>
+                    <p class="text-gray-600">Этот инструмент поможет тебе рассчитать идеальный внешний радиус, чтобы два вложенных квадрата (или прямоугольника) имели согласованные скругления (филлет), при условии что расстояния от края до края со всех сторон одинаковые. Для начала работы просто заполни поля ниже</p>
+                    <div class="grid grid-cols-2 gap-5">
+                        <div class="input-group flex flex-col gap-1">
+                            <label for="outerSize">Внешний квадрат:</label>
+                            <input type="number" id="outerSize" value="420" min="1" class="bg-gray-100 rounded-xl p-3 border border-gray-300 focus:border-blue-500 transition-colors">
+                        </div>
+                        <div class="input-group flex flex-col gap-1">
+                            <label for="innerSize">Квадрат внутри:</label>
+                            <input type="number" id="innerSize" value="320" min="1" class="bg-gray-100 rounded-xl p-3 border border-gray-300 focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-5">
+                        <div class="input-group flex flex-col gap-1">
+                            <label for="innerRadius">Радиус внутренний:</label>
+                            <input type="number" id="innerRadius" value="30" min="0" class="bg-gray-100 rounded-xl p-3 border border-gray-300 focus:border-blue-500 transition-colors">
+                        </div>
+                        <div class="input-group flex flex-col gap-1">
+                            <label for="outerRadiusResult">Радиус внешний:</label>
+                            <input type="text" id="outerRadiusResult" readonly class="bg-gray-200 rounded-xl p-3 border border-gray-300 transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col justify-center items-center w-full mt-8 md:mt-0 md:w-1/2">
+                    <div id="drawingArea" class="drawing-area rounded-2xl">
+                        <div id="drawingCanvas" class="drawing-canvas">
+                            <div id="validationMessage" class="validation-message" style="display:none;"></div>
+                            <div id="outerBox" class="box outer-box absolute"></div>
+                            <div id="innerBox" class="box inner-box absolute"></div>
+                            <div id="outerCircle" class="circle outer-circle"></div>
+                            <div id="innerCircle" class="circle inner-circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        <div class="content-section mt-12">
+            
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Для чего это нужно?</h2>
+            <p class="text-lg leading-relaxed text-gray-700 mb-8">
+                В веб-дизайне и разработке интерфейсов часто требуется создать контейнер, внутри которого находится другой элемент (например, карточка в модальном окне). Для достижения визуальной гармонии очень важно, чтобы их скругления "смотрелись" одинаково. 
+                Это явление называется согласованным скруглением (fillet). Мой калькулятор делает эту работу за тебя
+            </p>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Немного математики</h2>
+            <p class="text-lg leading-relaxed text-gray-700 mb-8">
+                Формула, лежащая в основе, очень проста. Если ты хочешь, чтобы внутренний и внешний радиусы имели общий центр скругления, внешний радиус должен быть равен сумме внутреннего радиуса и расстояния между стенками делёному на два:
+            </p>
+
+            <div class="bg-blue-50 p-4 rounded-xl text-center mb-8">
+                <p class="text-xl font-mono text-blue-700">
+                    Радиус внешнего скругления = радиус внутреннего скругления + (расстояние между квадратами ÷ 2)
+                </p>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Использование</h2>
+            <ul class="list-disc pl-5 space-y-3 text-lg text-gray-700">
+                <li>Укажи размеры стороны вашего квадрата в пикселях. Для прямоугольников выберете одну сторону у обоих элементов и введите её</li>
+                <li>Убедись что у твоей фигуры расстояния от края до края одинаковое со всех сторон, остальные случаи калькулятор не расчитает.</li>
+                <li>Установи желаемый радиус для внутреннего элемента.</li>
+                <li>Калькулятор мгновенно выдаст необходимый радиус для внешнего элемента, чтобы добиться идеального визуального соответствия.</li>
+            </ul>
+        </div>
+
+        <div class="mt-12 pt-6 border-t text-center text-gray-500 text-sm">
+            <p>© 2025 Артём Титов.</p>
+        </div>
+
+    </main>
+
+<script>
+
+const innerSizeInput = document.getElementById('innerSize');
+const innerRadiusInput = document.getElementById('innerRadius');
+const outerSizeInput = document.getElementById('outerSize');
+const outerRadiusResultInput = document.getElementById('outerRadiusResult');
+
+const drawingArea = document.getElementById('drawingArea');
+const drawingCanvas = document.getElementById('drawingCanvas');
+const outerBox = document.getElementById('outerBox');
+const innerBox = document.getElementById('innerBox');
+const outerCircle = document.getElementById('outerCircle');
+const innerCircle = document.getElementById('innerCircle');
+const validationMessage = document.getElementById('validationMessage');
+
+const elementsToValidate = [innerSizeInput, outerSizeInput, innerRadiusInput, drawingArea, outerRadiusResultInput];
+const previewElements = [innerBox, outerBox, outerCircle, innerCircle];
+
+
+[innerSizeInput, innerRadiusInput, outerSizeInput].forEach(input => {
+    input.addEventListener('input', updateVisualsAndCalculation);
+});
+
+function updateVisualsAndCalculation() {
+    
+    elementsToValidate.forEach(el => {
+        el.classList.remove('is-invalid', 'is-invalid-result');
+    });
+    outerRadiusResultInput.value = ''; 
+    validationMessage.style.display = 'none'; 
+
+
+    const outerSize = parseFloat(outerSizeInput.value);
+    const innerSize = parseFloat(innerSizeInput.value);
+    const innerRadius = parseFloat(innerRadiusInput.value);
+
+    let isValid = true;
+
+
+    if (isNaN(outerSize) || outerSize <= 0) {
+        outerSizeInput.classList.add('is-invalid');
+        isValid = false;
+    }
+    if (isNaN(innerSize) || innerSize <= 0) {
+        innerSizeInput.classList.add('is-invalid');
+        isValid = false;
+    }
+    if (isNaN(innerRadius) || innerRadius < 0) {
+        innerRadiusInput.classList.add('is-invalid');
+        isValid = false;
+    }
+
+
+    if (!isValid) {
+        handleInvalidState();
+        return;
+    }
+
+    if (innerSize >= outerSize) {
+        innerSizeInput.classList.add('is-invalid');
+        outerSizeInput.classList.add('is-invalid');
+        isValid = false;
+    }
+    if (innerRadius > innerSize / 2) {
+        innerRadiusInput.classList.add('is-invalid');
+        isValid = false;
+    }
+
+
+    if (isValid) {
+
+        previewElements.forEach(el => el.style.display = 'block');
+
+
+        const distance = (outerSize - innerSize) / 2;
+        const outerRadius = distance + innerRadius;
+
+        const maxDimension = Math.max(outerSize, outerRadius * 2);
+        const drawingAreaSize = drawingArea.clientWidth;
+        const scale = (drawingAreaSize / maxDimension) * 0.9;
+
+
+        outerBox.style.width = `${outerSize * scale}px`;
+        outerBox.style.height = `${outerSize * scale}px`;
+        outerBox.style.borderRadius = `${outerRadius * scale}px`;
+
+        innerBox.style.width = `${innerSize * scale}px`;
+        innerBox.style.height = `${innerSize * scale}px`;
+        innerBox.style.borderRadius = `${innerRadius * scale}px`;
+
+
+        const cornerPoint = innerSize / 2 - innerRadius;
+        const offsetX = cornerPoint * scale;
+        const offsetY = cornerPoint * scale;
+
+
+        outerCircle.style.width = `${outerRadius * 2 * scale}px`;
+        outerCircle.style.height = `${outerRadius * 2 * scale}px`;
+        outerCircle.style.top = `calc(50% + ${offsetY}px - ${outerRadius * scale}px)`;
+        outerCircle.style.left = `calc(50% + ${offsetX}px - ${outerRadius * scale}px)`;
+
+        innerCircle.style.width = `${innerRadius * 2 * scale}px`;
+        innerCircle.style.height = `${innerRadius * 2 * scale}px`;
+        innerCircle.style.top = `calc(50% + ${offsetY}px - ${innerRadius * scale}px)`;
+        innerCircle.style.left = `calc(50% + ${offsetX}px - ${innerRadius * scale}px)`;
+
+
+        outerRadiusResultInput.value = outerRadius.toFixed(2);
+    } else {
+        handleInvalidState();
+    }
+}
+
+function handleInvalidState() {
+    previewElements.forEach(el => el.style.display = 'none');
+
+    validationMessage.style.display = 'block';
+    validationMessage.textContent = 'проверьте данные';
+
+    drawingArea.classList.add('is-invalid');
+    outerRadiusResultInput.classList.add('is-invalid-result');
+}
+
+window.addEventListener('resize', updateVisualsAndCalculation);
+window.addEventListener('load', updateVisualsAndCalculation);
+</script>
+</body>
+</html>
