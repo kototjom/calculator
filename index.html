@@ -106,6 +106,30 @@
             border-color: #5379f7;
         }
 
+        /* Летающая плашка */
+        #floatingWarning {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            z-index: 30;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 251, 235, 0.95);
+            backdrop-filter: blur(4px);
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         @media (max-width: 768px) {
             .drawing-area {
                 height: 350px; 
@@ -161,6 +185,17 @@
             <!-- Правая колонка: Предпросмотр -->
             <div class="flex flex-col w-full mt-6 md:mt-0 md:w-1/2">
                 <div id="drawingArea" class="drawing-area">
+                    <!-- Летающая плашка-предупреждение -->
+                    <div id="floatingWarning">
+                        <div class="flex items-center gap-2 text-amber-900">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                            <span class="text-[11px] leading-tight font-medium">Предпросмотр неточен при небольших значениях</span>
+                        </div>
+                        <button id="closeWarning" class="ml-4 text-amber-900 hover:bg-amber-200 p-1 rounded-md transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
                     <div id="drawingCanvas" class="drawing-canvas">
                         <div id="validationMessage" class="validation-message" style="display:none;"></div>
                         <div id="outerBox" class="box outer-box absolute"></div>
@@ -218,6 +253,9 @@ const modeDescription = document.getElementById('modeDescription');
 const inputRadiusLabel = document.getElementById('inputRadiusLabel');
 const resultRadiusLabel = document.getElementById('resultRadiusLabel');
 
+const floatingWarning = document.getElementById('floatingWarning');
+const closeWarningBtn = document.getElementById('closeWarning');
+
 const drawingArea = document.getElementById('drawingArea');
 const outerBox = document.getElementById('outerBox');
 const innerBox = document.getElementById('innerBox');
@@ -225,26 +263,27 @@ const outerCircle = document.getElementById('outerCircle');
 const innerCircle = document.getElementById('innerCircle');
 const validationMessage = document.getElementById('validationMessage');
 
-let calculationMode = 'calcOuter'; // 'calcOuter' (знаем внутренний) или 'calcInner' (знаем внешний)
+let calculationMode = 'calcOuter'; 
+let warningDismissed = sessionStorage.getItem('warning_dismissed') === 'true';
 
-const elementsToValidate = [innerSizeInput, outerSizeInput, inputRadiusInput, drawingArea, resultRadiusInput];
 const previewElements = [innerBox, outerBox, outerCircle, innerCircle];
 
-// Переключение режимов
 modeInnerBtn.addEventListener('click', () => setMode('calcOuter'));
 modeOuterBtn.addEventListener('click', () => setMode('calcInner'));
 
+closeWarningBtn.addEventListener('click', () => {
+    floatingWarning.style.display = 'none';
+    sessionStorage.setItem('warning_dismissed', 'true');
+    warningDismissed = true;
+});
+
 function setMode(mode) {
     if (calculationMode === mode) return;
-
-    // Переносим текущий результат в поле ввода, если он валиден
     const currentResult = parseFloat(resultRadiusInput.value);
     if (!isNaN(currentResult) && currentResult >= 0) {
         inputRadiusInput.value = Math.round(currentResult);
     }
-
     calculationMode = mode;
-    
     if (mode === 'calcOuter') {
         modeInnerBtn.classList.add('active');
         modeOuterBtn.classList.remove('active');
@@ -266,102 +305,100 @@ function setMode(mode) {
 });
 
 function updateVisualsAndCalculation() {
-    elementsToValidate.forEach(el => {
-        el.classList.remove('is-invalid', 'is-invalid-result');
-    });
+    // Сбрасываем все индикаторы ошибок
+    [innerSizeInput, inputRadiusInput, outerSizeInput].forEach(el => el.classList.remove('input-error'));
     resultRadiusInput.value = ''; 
     validationMessage.style.display = 'none'; 
+    floatingWarning.style.display = 'none';
 
     const outerSize = parseFloat(outerSizeInput.value);
     const innerSize = parseFloat(innerSizeInput.value);
     const inputRadius = parseFloat(inputRadiusInput.value);
 
-    let isValid = true;
+    let hasFatalError = false;
 
-    if (isNaN(outerSize) || outerSize <= 0) {
-        outerSizeInput.classList.add('is-invalid');
-        isValid = false;
-    }
-    if (isNaN(innerSize) || innerSize <= 0) {
-        innerSizeInput.classList.add('is-invalid');
-        isValid = false;
-    }
-    if (isNaN(inputRadius) || inputRadius < 0) {
-        inputRadiusInput.classList.add('is-invalid');
-        isValid = false;
+    // 1. Базовая проверка на числа
+    if (isNaN(outerSize) || outerSize <= 0) { outerSizeInput.classList.add('input-error'); hasFatalError = true; }
+    if (isNaN(innerSize) || innerSize <= 0) { innerSizeInput.classList.add('input-error'); hasFatalError = true; }
+    if (isNaN(inputRadius) || inputRadius < 0) { inputRadiusInput.classList.add('input-error'); hasFatalError = true; }
+
+    if (hasFatalError) { handleInvalidState('некорректные данные'); return; }
+
+    // 2. Логическая проверка размеров
+    if (innerSize >= outerSize) { 
+        innerSizeInput.classList.add('input-error'); 
+        outerSizeInput.classList.add('input-error'); 
+        handleInvalidState('вложенный блок больше внешнего');
+        return; 
     }
 
-    if (!isValid) {
-        handleInvalidState();
+    const distance = (outerSize - innerSize) / 2;
+    let finalInnerRadius, finalOuterRadius;
+
+    if (calculationMode === 'calcOuter') {
+        finalInnerRadius = inputRadius;
+        finalOuterRadius = inputRadius + distance;
+    } else {
+        finalOuterRadius = inputRadius;
+        finalInnerRadius = Math.max(0, inputRadius - distance);
+    }
+
+    // 3. Прячем предпросмотр если радиус больше половины стороны (геометрия ломается)
+    if (finalOuterRadius > outerSize / 2 || finalInnerRadius > innerSize / 2) {
+        inputRadiusInput.classList.add('input-error');
+        handleInvalidState('радиус слишком велик для этого блока');
         return;
     }
 
-    if (innerSize >= outerSize) {
-        innerSizeInput.classList.add('is-invalid');
-        outerSizeInput.classList.add('is-invalid');
-        isValid = false;
+    // Если всё ок — показываем элементы
+    previewElements.forEach(el => el.style.display = 'block');
+
+    // Логика предупреждения (относительная): радиус < 5% от размера блока
+    const threshold = 0.05; 
+    const isInnerTooSmall = finalInnerRadius > 0 && finalInnerRadius < (innerSize * threshold);
+    const isOuterTooSmall = finalOuterRadius > 0 && finalOuterRadius < (outerSize * threshold);
+
+    if (!warningDismissed && (isInnerTooSmall || isOuterTooSmall)) {
+        floatingWarning.style.display = 'flex';
     }
 
-    // Проверка лимитов радиуса
-    if (calculationMode === 'calcOuter' && inputRadius > innerSize / 2) {
-        inputRadiusInput.classList.add('is-invalid');
-        isValid = false;
-    } else if (calculationMode === 'calcInner' && inputRadius > outerSize / 2) {
-        inputRadiusInput.classList.add('is-invalid');
-        isValid = false;
-    }
+    const scale = (Math.min(drawingArea.clientWidth, drawingArea.clientHeight) / outerSize) * 0.85;
 
-    if (isValid) {
-        previewElements.forEach(el => el.style.display = 'block');
+    // Рисуем боксы
+    outerBox.style.width = `${outerSize * scale}px`;
+    outerBox.style.height = `${outerSize * scale}px`;
+    outerBox.style.borderRadius = `${finalOuterRadius * scale}px`;
 
-        const distance = (outerSize - innerSize) / 2;
-        let finalInnerRadius, finalOuterRadius;
+    innerBox.style.width = `${innerSize * scale}px`;
+    innerBox.style.height = `${innerSize * scale}px`;
+    innerBox.style.borderRadius = `${finalInnerRadius * scale}px`;
 
-        if (calculationMode === 'calcOuter') {
-            finalInnerRadius = inputRadius;
-            finalOuterRadius = inputRadius + distance;
-        } else {
-            finalOuterRadius = inputRadius;
-            finalInnerRadius = Math.max(0, inputRadius - distance);
-        }
+    // Прячем круги только если значение равно 0
+    outerCircle.style.display = (finalOuterRadius <= 0) ? 'none' : 'block';
+    innerCircle.style.display = (finalInnerRadius <= 0) ? 'none' : 'block';
 
-        const maxDimension = Math.max(outerSize, finalOuterRadius * 2);
-        const drawingAreaW = drawingArea.clientWidth;
-        const drawingAreaH = drawingArea.clientHeight;
-        const scale = (Math.min(drawingAreaW, drawingAreaH) / maxDimension) * 0.85;
+    // Позиционирование кругов (теперь каждый прижат к углу своего блока)
+    // Координата угла скругления = (размер / 2) - радиус
+    const outerCenterOffset = (outerSize / 2 - finalOuterRadius) * scale;
+    const innerCenterOffset = (innerSize / 2 - finalInnerRadius) * scale;
+    
+    outerCircle.style.width = `${finalOuterRadius * 2 * scale}px`;
+    outerCircle.style.height = `${finalOuterRadius * 2 * scale}px`;
+    outerCircle.style.top = `calc(50% + ${outerCenterOffset}px - ${finalOuterRadius * scale}px)`;
+    outerCircle.style.left = `calc(50% + ${outerCenterOffset}px - ${finalOuterRadius * scale}px)`;
 
-        outerBox.style.width = `${outerSize * scale}px`;
-        outerBox.style.height = `${outerSize * scale}px`;
-        outerBox.style.borderRadius = `${finalOuterRadius * scale}px`;
+    innerCircle.style.width = `${finalInnerRadius * 2 * scale}px`;
+    innerCircle.style.height = `${finalInnerRadius * 2 * scale}px`;
+    innerCircle.style.top = `calc(50% + ${innerCenterOffset}px - ${finalInnerRadius * scale}px)`;
+    innerCircle.style.left = `calc(50% + ${innerCenterOffset}px - ${finalInnerRadius * scale}px)`;
 
-        innerBox.style.width = `${innerSize * scale}px`;
-        innerBox.style.height = `${innerSize * scale}px`;
-        innerBox.style.borderRadius = `${finalInnerRadius * scale}px`;
-
-        const cornerPointInner = innerSize / 2 - finalInnerRadius;
-        
-        outerCircle.style.width = `${finalOuterRadius * 2 * scale}px`;
-        outerCircle.style.height = `${finalOuterRadius * 2 * scale}px`;
-        outerCircle.style.top = `calc(50% + ${cornerPointInner * scale}px - ${finalOuterRadius * scale}px)`;
-        outerCircle.style.left = `calc(50% + ${cornerPointInner * scale}px - ${finalOuterRadius * scale}px)`;
-
-        innerCircle.style.width = `${finalInnerRadius * 2 * scale}px`;
-        innerCircle.style.height = `${finalInnerRadius * 2 * scale}px`;
-        innerCircle.style.top = `calc(50% + ${cornerPointInner * scale}px - ${finalInnerRadius * scale}px)`;
-        innerCircle.style.left = `calc(50% + ${cornerPointInner * scale}px - ${finalInnerRadius * scale}px)`;
-
-        resultRadiusInput.value = (calculationMode === 'calcOuter' ? finalOuterRadius : finalInnerRadius).toFixed(2);
-    } else {
-        handleInvalidState();
-    }
+    resultRadiusInput.value = (calculationMode === 'calcOuter' ? finalOuterRadius : finalInnerRadius).toFixed(2);
 }
 
-function handleInvalidState() {
+function handleInvalidState(msg) {
     previewElements.forEach(el => el.style.display = 'none');
     validationMessage.style.display = 'block';
-    validationMessage.textContent = 'проверьте данные';
-    drawingArea.classList.add('is-invalid');
-    resultRadiusInput.classList.add('is-invalid-result');
+    validationMessage.textContent = msg;
 }
 
 window.addEventListener('resize', updateVisualsAndCalculation);

@@ -1,28 +1,53 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Приватность</title>
+    <title>Калькулятор скруглений вложенных элементов</title>
+    <meta name="description" content="Удобный калькулятор для расчёта скруглений у вложенных элементов.">
+    <meta name="keywords" content="калькулятор скруглений, fillet calculator, дизайн, UI, geometry, web development, вложенные элементы">
+    <meta name="author" content="@kototjom">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Калькулятор скруглений вложенных элементов">
+    <meta property="og:description" content="Инструмент, который помогает рассчитать идеальные скругления у вложенных элементов.">
+    <meta property="og:url" content="https://calc.kototjom.top/">
+    <meta property="og:image" content="https://calc.kototjom.top/preview.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Калькулятор скруглений вложенных элементов">
+    <meta name="twitter:description" content="Инструмент, который помогает рассчитать идеальные скругления у вложенных элементов.">
+    <meta name="twitter:image" content="https://calc.kototjom.top/preview.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --primary-color: #5379f7;
+            --secondary-color: #28a745;
+            --danger-color: #ef4444;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #ffffff; 
-            color: #1f2937; 
+            background-color: #ffffff;
+            color: #1f2937;
         }
+
         .content-section {
+            padding: 1rem 0;
             max-width: 800px;
             margin: 0 auto;
         }
     </style>
 </head>
+
 <body class="min-h-screen bg-gray-50 p-4 md:p-8">
 
-    <main class="container mx-auto max-w-4xl w-full">
-        <div class="bg-white rounded-3xl p-8 md:p-12 border border-gray-200 shadow-sm">
-            
+    <main class="container mx-auto max-w-7xl w-full">
+        <div class="content-section mt-12">
             <header class="mb-10">
                 <a href="/" class="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2 mb-6 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -34,63 +59,50 @@
                 <p class="text-gray-500 mt-4">Дата вступления в силу: 26 декабря 2025 года</p>
             </header>
 
-            <div class="space-y-8 text-lg leading-relaxed text-gray-700">
-                <section>
-                    <p>Я ценю вашу конфиденциальность. Данная политика объясняет, как мой инструмент <strong>«Калькулятор скруглений вложенных элементов»</strong> обрабатывает данные.</p>
-                </section>
+            <p class="text-lg leading-relaxed text-gray-700 mb-8">
+                Я ценю вашу конфиденциальность. Данная политика объясняет, как мой инструмент «Калькулятор скруглений вложенных элементов» обрабатывает данные.
+            </p>
 
-                <section>
-                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
-                        Сбор данных
-                    </h2>
-                    <p>Мой калькулятор является клиентским приложением. Это означает:</p>
-                    <ul class="list-disc pl-6 mt-3 space-y-2">
-                        <li><strong>Все расчеты выполняются локально</strong> в вашем браузере.</li>
-                        <li>Я <strong>не собираю</strong>, не храню и не передаю ваши личные данные или параметры расчетов на сторонние серверы.</li>
-                        <li>Сайт размещен на платформе <strong>GitHub Pages</strong>. GitHub может собирать стандартные логи сервера (например, IP-адрес) в целях безопасности и аналитики, согласно их собственной политике конфиденциальности.</li>
-                    </ul>
-                </section>
-
-                <section>
-                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
-                        Cookies
-                    </h2>
-                    <p>Я не использую собственные файлы cookie для отслеживания ваших действий или хранения персональной информации.</p>
-                </section>
-
-                <section>
-                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span>
-                        Сторонние сервисы
-                    </h2>
-                    <ul class="list-disc pl-6 space-y-2">
-                        <li><strong>Google Fonts:</strong> Я использую шрифт Inter для обеспечения современного интерфейса.</li>
-                        <li><strong>Tailwind CSS:</strong> Библиотека стилей загружается через надежные сети доставки контента (CDN).</li>
-                    </ul>
-                </section>
-
-                <section class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                    <h2 class="text-xl font-bold text-gray-900 mb-4">4. Контакты</h2>
-                    <p class="mb-6">Если у вас есть вопросы или предложения по работе инструмента, вы можете связаться со мной напрямую через форму:</p>
-                    <a href="https://tally.so/r/w7Bdkz" target="_blank" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
-                        Написать мне
-                    </a>
-                </section>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Сбор данных</h2>
+            <div class="text-lg leading-relaxed text-gray-700 mb-8">
+                <p class="mb-4">Мой калькулятор является клиентским приложением. Это означает:</p>
+                <ul class="list-disc pl-5 space-y-3 text-lg text-gray-700">
+                    <li>Все расчеты выполняются локально в вашем браузере.</li>
+                    <li>Я не собираю, не храню и не передаю ваши личные данные или параметры расчетов на сторонние серверы.</li>
+                    <li>Сайт размещен на платформе GitHub Pages. GitHub может собирать стандартные логи сервера (например, IP-адрес) в целях безопасности и аналитики, согласно их собственной политике конфиденциальности.</li>
+                </ul>
             </div>
 
-            <footer class="mt-12 pt-8 border-t border-gray-100 text-sm text-gray-400">
-                <p class="mt-2 italic">Отказ от ответственности: Инструмент предоставляется «как есть» без каких-либо гарантий. Я не несу ответственности за любые ошибки в расчетах.</p>
-            </footer>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Cookies</h2>
+            <p class="text-lg leading-relaxed text-gray-700 mb-8">
+                Я не использую собственные файлы cookie для отслеживания ваших действий или хранения персональной информации.
+            </p>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Сторонние сервисы</h2>
+            <div class="text-lg leading-relaxed text-gray-700 mb-8">
+                <ul class="list-disc pl-5 space-y-3 text-lg text-gray-700">
+                    <li>Google Fonts: Я использую шрифт Inter для обеспечения современного интерфейса.</li>
+                    <li>Tailwind CSS: Библиотека стилей загружается через надежные сети доставки контента (CDN).</li>
+                </ul>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Контакт</h2>
+            <p class="text-lg leading-relaxed text-gray-700 mb-8">
+                Если у вас есть вопросы или предложения по работе инструмента, а так же вопросы по политике конфиденциальности, вы можете связаться со мной напрямую через форму:<br><br>
+                <a href="https://tally.so/r/w7Bdkz" target="_blank" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+                    Написать мне
+                </a>
+            </p>
         </div>
 
-        <div class="mt-8 text-center text-gray-400 text-sm">
-            <p>© <span id="current-year"></span> <a href="https://kototjom.top" class="hover:underline">Kototjom</a></p>
+        <div class="mt-12 pt-6 border-t text-center text-gray-500 text-sm">
+            <p>
+                <a href="/приватность/" class="hover:underline">Ваша приватность.</a> © <span id="current-year"></span>
+                <a href="https://kototjom.top" class="hover:underline">Kototjom</a>
+            </p>
         </div>
     </main>
-<script>
-  document.getElementById("current-year").textContent = new Date().getFullYear();
-</script>
+
 </body>
+
 </html>
