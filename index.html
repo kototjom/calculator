@@ -322,13 +322,13 @@ function updateVisualsAndCalculation() {
     if (isNaN(innerSize) || innerSize <= 0) { innerSizeInput.classList.add('input-error'); hasFatalError = true; }
     if (isNaN(inputRadius) || inputRadius < 0) { inputRadiusInput.classList.add('input-error'); hasFatalError = true; }
 
-    if (hasFatalError) { handleInvalidState('некорректные данные'); return; }
+    if (hasFatalError) { handleInvalidState('Перепроверьте введённые данные'); return; }
 
     // 2. Логическая проверка размеров
     if (innerSize >= outerSize) { 
         innerSizeInput.classList.add('input-error'); 
         outerSizeInput.classList.add('input-error'); 
-        handleInvalidState('вложенный блок больше внешнего');
+        handleInvalidState('Перепроверьте введённые данные');
         return; 
     }
 
@@ -346,7 +346,7 @@ function updateVisualsAndCalculation() {
     // 3. Прячем предпросмотр если радиус больше половины стороны (геометрия ломается)
     if (finalOuterRadius > outerSize / 2 || finalInnerRadius > innerSize / 2) {
         inputRadiusInput.classList.add('input-error');
-        handleInvalidState('радиус слишком велик для этого блока');
+        handleInvalidState('Перепроверьте введённые данные');
         return;
     }
 
