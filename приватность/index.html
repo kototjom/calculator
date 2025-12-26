@@ -97,12 +97,13 @@
 
         <div class="mt-12 pt-6 border-t text-center text-gray-500 text-sm">
             <p>
-                <a href="/приватность/" class="hover:underline">Ваша приватность.</a> © <span id="current-year"></span>
-                <a href="https://kototjom.top" class="hover:underline">Kototjom</a>
+                © <span id="current-year"></span> <a href="https://kototjom.top" class="hover:underline">Kototjom</a>
             </p>
         </div>
     </main>
 
 </body>
-
+<script>
+document.getElementById("current-year").textContent = new Date().getFullYear();
+</script>
 </html>
